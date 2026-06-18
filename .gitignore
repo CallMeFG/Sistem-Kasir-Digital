@@ -1,0 +1,8 @@
+# Mengabaikan folder agent
+.agent/
+
+# Mengabaikan semua file PDF (modul pertemuan)
+*.pdf
+
+# Mengabaikan file PRD
+PRD.md
