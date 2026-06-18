@@ -149,7 +149,6 @@ export default function RiwayatTransaksi() {
 
   return (
     <div>
-      {/* Toolbar */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20, alignItems: 'center' }}>
         <input
           className="form-input"
@@ -175,7 +174,6 @@ export default function RiwayatTransaksi() {
         </button>
       </div>
 
-      {/* Summary */}
       {!loading && (
         <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ background: 'var(--primary-50)', border: '1px solid var(--primary-100)', borderRadius: 10, padding: '10px 16px', fontSize: 13 }}>
@@ -189,7 +187,6 @@ export default function RiwayatTransaksi() {
         </div>
       )}
 
-      {/* Tabel */}
       {loading ? (
         <SkeletonTable rows={6} cols={4} />
       ) : filtered.length === 0 ? (
@@ -204,7 +201,6 @@ export default function RiwayatTransaksi() {
             const isOpen = expanded === trx.id;
             return (
               <div key={trx.id} className="card" style={{ overflow: 'hidden' }}>
-                {/* Header baris transaksi */}
                 <div
                   onClick={() => setExpanded(isOpen ? null : trx.id)}
                   style={{
@@ -234,7 +230,6 @@ export default function RiwayatTransaksi() {
                   </span>
                 </div>
 
-                {/* Detail barang (expandable) */}
                 {isOpen && (
                   <div style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-input)', padding: '12px 20px', animation: 'fadeIn 0.2s ease' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>

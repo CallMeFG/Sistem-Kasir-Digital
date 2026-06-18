@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
-import { getLaporan } from '../services/laporanService';
+import { useState, useEffect, useMemo } from 'react';
+import { getBarang } from '../services/barangService';
+import { getRiwayatTransaksi } from '../services/transaksiService';
 import { SkeletonStatCard, SkeletonTable } from '../components/Skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 
 export default function Laporan() {
-  const [laporanData, setLaporanData] = useState(null);
+  const [barangList, setBarangList] = useState([]);
+  const [riwayat, setRiwayat]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [bulan, setBulan]           = useState(() => {
     const d = new Date();
@@ -14,27 +16,88 @@ export default function Laporan() {
   });
 
   useEffect(() => {
-    setLoading(true);
-    const [y, m] = bulan.split('-');
-    getLaporan(m, y)
-      .then(res => {
-        setLaporanData(res.data.data);
-      })
-      .catch((err) => {
-        console.error("API Error:", err.response ? err.response.data : err);
-        setLaporanData(null);
-      })
-      .finally(() => setLoading(false));
-  }, [bulan]);
+    fetchData();
+  }, []);
 
-  const data = laporanData || {
-    total_pendapatan: 0,
-    total_modal: 0,
-    laba_kotor: 0,
-    per_hari: [],
-    per_kategori: [],
-    top_barang: []
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [resBarang, resTrx] = await Promise.all([
+        getBarang(),
+        getRiwayatTransaksi().catch(() => ({ data: { data: [] } })),
+      ]);
+      setBarangList(resBarang.data.data || []);
+      setRiwayat(resTrx.data.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const data = useMemo(() => {
+    let total_pendapatan = 0;
+    let total_modal = 0;
+    let laba_kotor = 0;
+    const harian = {};
+    const kategoriMap = {};
+    const barangMap = {};
+
+    const [y, m] = bulan.split('-');
+    const targetMonth = `${y}-${m}`;
+
+    riwayat.forEach(trx => {
+      const trxDate = trx.tanggal.substring(0, 7);
+      if (trxDate === targetMonth) {
+        total_pendapatan += Number(trx.total_harga);
+
+        const hari = new Date(trx.tanggal).getDate().toString();
+        if (!harian[hari]) harian[hari] = 0;
+        harian[hari] += Number(trx.total_harga);
+
+        (trx.detail || []).forEach(d => {
+          const barang = barangList.find(b => b.nama === d.nama_barang);
+          const hModal = barang ? Number(barang.harga_modal) : Number(d.harga_satuan) * 0.8;
+          const modalItem = hModal * d.jumlah;
+          const labaItem = (Number(d.harga_satuan) - hModal) * d.jumlah;
+          
+          total_modal += modalItem;
+          laba_kotor += labaItem;
+
+          const kat = barang ? barang.kategori : 'Lainnya';
+          if (!kategoriMap[kat]) kategoriMap[kat] = { pendapatan: 0, laba: 0 };
+          kategoriMap[kat].pendapatan += Number(d.harga_satuan) * d.jumlah;
+          kategoriMap[kat].laba += labaItem;
+
+          if (!barangMap[d.nama_barang]) barangMap[d.nama_barang] = { jumlah: 0, pendapatan: 0 };
+          barangMap[d.nama_barang].jumlah += d.jumlah;
+          barangMap[d.nama_barang].pendapatan += Number(d.harga_satuan) * d.jumlah;
+        });
+      }
+    });
+
+    const per_hari = Object.keys(harian).sort((a, b) => Number(a) - Number(b)).map(hari => ({
+      hari,
+      pendapatan: harian[hari]
+    }));
+
+    const per_kategori = Object.keys(kategoriMap).map(kat => ({
+      kategori: kat,
+      pendapatan: kategoriMap[kat].pendapatan,
+      laba: kategoriMap[kat].laba
+    }));
+
+    const top_barang = Object.keys(barangMap)
+      .map(nama => ({
+        nama,
+        total_terjual: barangMap[nama].jumlah,
+        total_pendapatan: barangMap[nama].pendapatan
+      }))
+      .sort((a, b) => b.total_terjual - a.total_terjual)
+      .slice(0, 5);
+
+    return { total_pendapatan, total_modal, laba_kotor, per_hari, per_kategori, top_barang };
+  }, [riwayat, barangList, bulan]);
 
   const {
     total_pendapatan: pendapatan,
@@ -62,23 +125,141 @@ export default function Laporan() {
   const [y, m] = bulan.split('-');
   const namaBulan = new Date(Number(y), Number(m) - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
+  const exportPDF = () => {
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    if (!printWindow) return alert("Izinkan popup untuk mencetak laporan.");
+    
+    let html = `
+      <html>
+        <head>
+          <title>Laporan Keuangan - ${namaBulan}</title>
+          <style>
+            @page { margin: 20px; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; padding: 20px; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+            .title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+            .subtitle { font-size: 16px; color: #666; }
+            
+            .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; }
+            .stat { flex: 1; background: #f8fafc; padding: 15px; margin: 0 10px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; }
+            .stat-title { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+            .stat-value { font-size: 20px; font-weight: bold; color: #0f172a; }
+            .stat-value.green { color: #16a34a; }
+            .stat-value.red { color: #dc2626; }
+            
+            .section-title { font-size: 18px; font-weight: bold; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+            th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+            th { background: #f8fafc; color: #475569; font-weight: 600; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">WARUNG ADJIE</div>
+            <div class="subtitle">Laporan Keuangan: ${namaBulan}</div>
+          </div>
+          
+          <div class="summary-box">
+            <div class="stat">
+              <div class="stat-title">Total Pendapatan</div>
+              <div class="stat-value">Rp ${fmt(pendapatan)}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">Total Modal</div>
+              <div class="stat-value">Rp ${fmt(modal)}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">Laba Kotor</div>
+              <div class="stat-value ${laba >= 0 ? 'green' : 'red'}">Rp ${fmt(laba)}</div>
+            </div>
+          </div>
+          
+          <div class="section-title">Pendapatan per Kategori</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Kategori</th>
+                <th class="text-right">Pendapatan</th>
+                <th class="text-right">Laba</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${perKategori.map(k => `
+                <tr>
+                  <td>${k.kat}</td>
+                  <td class="text-right">Rp ${fmt(k.pendapatan)}</td>
+                  <td class="text-right ${k.laba >= 0 ? 'green' : 'red'}">Rp ${fmt(k.laba)}</td>
+                </tr>
+              `).join('')}
+              ${perKategori.length === 0 ? '<tr><td colspan="3" class="text-center">Tidak ada data</td></tr>' : ''}
+            </tbody>
+          </table>
+          
+          <div class="section-title">Top 5 Produk Terlaris</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px">#</th>
+                <th>Nama Produk</th>
+                <th class="text-center">Terjual</th>
+                <th class="text-right">Pendapatan</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topBarang.map((b, i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${b.nama}</td>
+                  <td class="text-center">${b.jumlah}</td>
+                  <td class="text-right">Rp ${fmt(b.pendapatan)}</td>
+                </tr>
+              `).join('')}
+              ${topBarang.length === 0 ? '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>' : ''}
+            </tbody>
+          </table>
+          
+          <div style="text-align: right; margin-top: 40px; font-size: 12px; color: #64748b;">
+            Dicetak pada: ${new Date().toLocaleString('id-ID')}
+          </div>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   return (
     <div>
-      {/* Filter */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-extrabold text-textPrimary mb-1">Laporan Bulan {namaBulan}</h2>
           <p className="text-textSecondary text-sm">Ringkasan pendapatan, modal, dan laba kotor</p>
         </div>
-        <input 
-          type="month" 
-          className="border border-border rounded-lg bg-input text-textPrimary px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm w-full sm:w-auto" 
-          value={bulan} 
-          onChange={e => setBulan(e.target.value)} 
-        />
+        <div className="flex gap-2">
+          <input 
+            type="month" 
+            className="border border-border rounded-lg bg-input text-textPrimary px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm w-full sm:w-auto" 
+            value={bulan} 
+            onChange={e => setBulan(e.target.value)} 
+          />
+          <button
+            onClick={exportPDF}
+            className="btn btn-primary"
+            disabled={loading || perHari.length === 0}
+          >
+            🖨️ Cetak PDF
+          </button>
+        </div>
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {loading ? Array.from({ length: 3 }).map((_, i) => <SkeletonStatCard key={i} />) : (
           <>
@@ -122,7 +303,6 @@ export default function Laporan() {
         )}
       </div>
 
-      {/* Grafik Harian */}
       <div className="bg-card p-6 rounded-xl shadow-sm border border-border mb-6">
         <h3 className="font-bold text-textPrimary text-lg mb-5">📊 Pendapatan Harian — {namaBulan}</h3>
         {loading ? <div className="animate-pulse bg-input rounded-lg h-56 w-full" /> : perHari.length === 0 ? (
@@ -146,7 +326,6 @@ export default function Laporan() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Per Kategori */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
           <h3 className="font-bold text-textPrimary text-lg mb-4">🏷️ Laba per Kategori</h3>
           {loading ? <SkeletonTable rows={3} cols={3} /> : perKategori.length === 0 ? (
@@ -179,7 +358,6 @@ export default function Laporan() {
           )}
         </div>
 
-        {/* Top Barang */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
           <h3 className="font-bold text-textPrimary text-lg mb-4">🏆 Top Produk Terjual</h3>
           {loading ? <SkeletonTable rows={5} cols={3} /> : topBarang.length === 0 ? (

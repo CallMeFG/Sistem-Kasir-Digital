@@ -102,7 +102,6 @@ export default function Dashboard() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-extrabold text-textPrimary mb-1">Ringkasan Penjualan 📊</h2>
@@ -119,7 +118,6 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />)
@@ -176,9 +174,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Main Chart */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border lg:col-span-2">
           <div className="flex justify-between items-center mb-5">
             <h3 className="font-bold text-textPrimary text-lg">📈 Tren Pendapatan</h3>
@@ -226,7 +222,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Barang Terlaris */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border lg:col-span-1">
           <h3 className="font-bold text-textPrimary text-lg mb-4">🏆 Produk Terlaris</h3>
           {loading ? (
@@ -261,9 +256,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Riwayat Terakhir */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-textPrimary text-lg">📄 Transaksi Terakhir</h3>
@@ -298,7 +291,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Stok Kritis */}
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-textPrimary text-lg">⚠️ Stok Kritis</h3>

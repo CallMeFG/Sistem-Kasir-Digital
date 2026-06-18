@@ -10,7 +10,6 @@ export default function AuthLayout() {
       fontFamily: 'var(--font-sans)',
       background: 'var(--bg-app)',
     }}>
-      {/* Kiri: Branding Panel */}
       <div style={{
         flex: 1,
         background: 'linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%)',
@@ -52,7 +51,6 @@ export default function AuthLayout() {
         </div>
       </div>
 
-      {/* Kanan: Form (Di-render lewat Outlet) */}
       <div style={{
         width: '100%',
         maxWidth: 460,

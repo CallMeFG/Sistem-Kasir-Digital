@@ -91,7 +91,6 @@ export default function DaftarBarang() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Debounce search implementation
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
@@ -189,7 +188,6 @@ export default function DaftarBarang() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Toolbar: Search, Filter, Sort */}
       <div className="flex gap-2.5 flex-wrap items-center">
         <input
           className="form-input flex-1 min-w-[200px]"
@@ -209,7 +207,6 @@ export default function DaftarBarang() {
       </div>
 
       <div className="flex gap-5 items-start flex-col md:flex-row">
-        {/* FORM PANEL */}
         <div className="w-full md:w-[280px] shrink-0">
           <div className="card p-6 sticky top-[84px]">
             <h2 className="font-extrabold text-[15px] text-textPrimary mb-4">
@@ -233,7 +230,6 @@ export default function DaftarBarang() {
                 <div className="flex-1"><InputField label="Jual (Rp)" type="number" name="harga_jual" value={formData.harga_jual} onChange={handleChange} required placeholder="0" /></div>
               </div>
 
-              {/* Conditional Rendering Margin preview */}
               {!formData.harga_modal || !formData.harga_jual ? (
                 <div className="bg-warningBg border border-warningBorder rounded-lg px-3 py-2 text-xs text-warningText font-medium">
                   Harap lengkapi harga modal dan jual.
@@ -283,7 +279,6 @@ export default function DaftarBarang() {
           </div>
         </div>
 
-        {/* GRID BARANG */}
         <div className="flex-1 w-full">
           {restockTarget && (
             <ModalRestock barang={restockTarget} onClose={() => setRestockTarget(null)} onSuccess={fetchData} toast={toast} />

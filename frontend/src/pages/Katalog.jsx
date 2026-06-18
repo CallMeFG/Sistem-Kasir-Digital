@@ -27,7 +27,6 @@ export default function Katalog() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', fontFamily: 'var(--font-sans)' }}>
-      {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #4338ca 0%, #6366f1 60%, #8b5cf6 100%)',
         padding: '48px 24px 64px',
@@ -46,7 +45,6 @@ export default function Katalog() {
         </div>
       </div>
 
-      {/* Search & Filter */}
       <div style={{ maxWidth: 900, margin: '-24px auto 0', padding: '0 20px', position: 'relative', zIndex: 10 }}>
         <div className="card" style={{ padding: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <input
@@ -68,7 +66,6 @@ export default function Katalog() {
         </div>
       </div>
 
-      {/* Grid Produk */}
       <div style={{ maxWidth: 900, margin: '24px auto', padding: '0 20px 40px' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>

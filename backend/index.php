@@ -1,5 +1,4 @@
 <?php
-// CORS Headers (Global for all routes)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
@@ -11,14 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 require_once 'config/database.php';
 require_once 'views/JsonView.php';
 
-// Menangkap route dari URL atau param 'route' hasil dari .htaccess
 $route = isset($_GET['route']) ? trim($_GET['route'], '/') : '';
 
 if ($route === '') {
     JsonView::render(false, null, "Warung Adjie API is running.", 200);
 }
 
-// Inisialisasi Database
 $database = new Database();
 $db = $database->getConnection();
 

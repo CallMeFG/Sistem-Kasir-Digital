@@ -218,7 +218,6 @@ export default function Transaksi() {
 
   return (
     <div className="flex gap-5 h-[calc(100vh-130px)] min-h-[500px] flex-col md:flex-row">
-      {/* Modals */}
       {showModal && (
         <ModalBayar
           keranjang={keranjang}
@@ -230,7 +229,6 @@ export default function Transaksi() {
       )}
       {struk && <ModalStruk struk={struk} onClose={() => setStruk(null)} />}
 
-      {/* KIRI: Daftar Barang */}
       <div className="card flex-1 flex flex-col overflow-hidden">
         <div className="p-4 px-5 border-b border-border">
           <h2 className="font-extrabold text-base mb-3">Pilih Produk</h2>
@@ -282,7 +280,6 @@ export default function Transaksi() {
         </div>
       </div>
 
-      {/* KANAN: Keranjang */}
       <div className="card w-full md:w-[320px] flex flex-col overflow-hidden border-t-4 border-t-primary-600 shrink-0 h-full">
         <div className="p-4 px-5 border-b border-border">
           <h2 className="font-extrabold text-base flex items-center gap-2">
@@ -323,7 +320,6 @@ export default function Transaksi() {
           )}
         </div>
 
-        {/* Footer Keranjang */}
         <div className="p-4 px-5 border-t-2 border-dashed border-border bg-bg-app">
           <div className="flex justify-between font-black text-lg mb-3.5 text-textPrimary">
             <span>Total</span>
