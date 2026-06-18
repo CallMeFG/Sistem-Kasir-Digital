@@ -1,70 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBarang, createBarang, updateBarang, deleteBarang, restockBarang } from '../services/barangService';
+import { getBarang, createBarang, updateBarang, deleteBarang } from '../services/barangService';
 import { BACKEND_URL } from '../services/api';
 import { useToast } from '../components/Toast';
 import { SkeletonCard } from '../components/Skeleton';
 import InputField from '../components/InputField';
-
-function ModalRestock({ barang, onClose, onSuccess, toast }) {
-  const [jumlah, setJumlah] = useState('');
-  const [loading, setLoading] = useState(false);
-  const quickAmounts = [5, 10, 20, 50];
-
-  const handleRestock = async () => {
-    if (!jumlah || Number(jumlah) <= 0) return toast.warning('Input tidak valid', 'Masukkan jumlah restock > 0');
-    setLoading(true);
-    try {
-      await restockBarang(barang.id, Number(jumlah));
-      toast.success('Restock berhasil!', `Stok "${barang.nama}" bertambah ${jumlah}. Total: ${Number(barang.stok) + Number(jumlah)}`);
-      onSuccess();
-      onClose();
-    } catch {
-      toast.error('Gagal restock', 'Terjadi kesalahan saat menambah stok.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box max-w-[380px]">
-        <div className="modal-header">
-          <h3 className="font-extrabold text-[15px]">📦 Restock Produk</h3>
-          <button className="btn btn-secondary !px-2 !py-1" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body">
-          <div className="bg-input rounded-xl px-3.5 py-2.5 mb-4">
-            <div className="font-bold text-sm">{barang.nama}</div>
-            <div className="text-[12.5px] text-textMuted mt-0.5">Stok saat ini: <strong className={barang.stok < 5 ? 'text-errorText' : 'text-textPrimary'}>{barang.stok}</strong></div>
-          </div>
-          <InputField 
-            label="Jumlah Tambahan" 
-            type="number" 
-            placeholder="Masukkan jumlah..." 
-            value={jumlah} 
-            onChange={e => setJumlah(e.target.value)} 
-          />
-          <div className="flex gap-1.5 mb-4 flex-wrap">
-            {quickAmounts.map(q => (
-              <button key={q} onClick={() => setJumlah(q)} className={`btn btn-sm ${Number(jumlah) === q ? 'btn-primary' : 'btn-secondary'}`}>+{q}</button>
-            ))}
-          </div>
-          {jumlah > 0 && (
-            <div className="bg-successBg border border-successBorder rounded-lg px-3 py-2 text-[13px] text-successText font-semibold">
-              Stok baru: {Number(barang.stok) + Number(jumlah)}
-            </div>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-secondary">Batal</button>
-          <button onClick={handleRestock} disabled={loading || !jumlah} className="btn btn-primary">
-            {loading ? <><span className="spinner" /> Menyimpan...</> : '✅ Tambah Stok'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const KATEGORI_LIST = ['Semua', 'Makanan', 'Minuman', 'Sembako', 'Lainnya'];
 const SORT_OPTIONS  = [
@@ -87,7 +26,6 @@ export default function DaftarBarang() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterKat, setFilterKat]       = useState('Semua');
   const [sortBy, setSortBy]             = useState('newest');
-  const [restockTarget, setRestockTarget] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -243,7 +181,24 @@ export default function DaftarBarang() {
                 </div>
               )}
 
-              <InputField label="Stok" type="number" name="stok" value={formData.stok} onChange={handleChange} required placeholder="0" />
+              <div className="form-group">
+                <InputField label="Stok" type="number" name="stok" value={formData.stok} onChange={handleChange} required placeholder="0" />
+                {formData.id && (
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    <span className="text-xs text-textMuted font-medium py-1 px-1">Restock cepat:</span>
+                    {[5, 10, 20, 50].map(q => (
+                      <button 
+                        type="button" 
+                        key={q} 
+                        onClick={() => setFormData(p => ({ ...p, stok: Number(p.stok) + q }))} 
+                        className="btn btn-secondary btn-sm flex-1"
+                      >
+                        +{q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <div className="form-group mb-1">
                 <label className="form-label">Foto Produk (Opsional)</label>
@@ -280,9 +235,6 @@ export default function DaftarBarang() {
         </div>
 
         <div className="flex-1 w-full">
-          {restockTarget && (
-            <ModalRestock barang={restockTarget} onClose={() => setRestockTarget(null)} onSuccess={fetchData} toast={toast} />
-          )}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -334,8 +286,7 @@ export default function DaftarBarang() {
 
                     <div className="flex gap-2 mt-1 flex-wrap">
                       <button onClick={() => handleEdit(b)} className="btn btn-secondary btn-sm flex-1">✏️ Edit</button>
-                      <button onClick={() => setRestockTarget(b)} className="btn btn-sm flex-1 bg-infoBg text-infoText border border-infoBorder">📦 Restock</button>
-                      <button onClick={() => handleDelete(b.id, b.nama)} className="btn btn-danger btn-sm w-full">🗑️ Hapus</button>
+                      <button onClick={() => handleDelete(b.id, b.nama)} className="btn btn-danger btn-sm flex-1">🗑️ Hapus</button>
                     </div>
                   </div>
                 );

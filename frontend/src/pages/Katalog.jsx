@@ -10,6 +10,7 @@ export default function Katalog() {
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
   const [filterKat, setFilterKat]   = useState('Semua');
+  const [selectedProduk, setSelectedProduk] = useState(null);
 
   useEffect(() => {
     getBarang()
@@ -19,7 +20,7 @@ export default function Katalog() {
   }, []);
 
   const filtered = useMemo(() => {
-    let res = barangList.filter(b => b.stok > 0);
+    let res = [...barangList];
     if (filterKat !== 'Semua') res = res.filter(b => b.kategori === filterKat);
     if (search) res = res.filter(b => b.nama.toLowerCase().includes(search.toLowerCase()));
     return res;
@@ -80,7 +81,8 @@ export default function Katalog() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
             {filtered.map(b => (
-              <div key={b.id} className="card" style={{ padding: 18, transition: 'all 0.2s' }}
+              <div key={b.id} className="card" style={{ padding: 18, transition: 'all 0.2s', cursor: 'pointer' }}
+                onClick={() => setSelectedProduk(b)}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
@@ -102,8 +104,8 @@ export default function Katalog() {
                 <span className="badge badge-neutral" style={{ fontSize: 11, marginBottom: 8 }}>{b.kategori}</span>
                 <h3 style={{ fontWeight: 700, fontSize: 14, marginBottom: 8, color: 'var(--text-primary)', lineHeight: 1.3 }}>{b.nama}</h3>
                 <p style={{ fontWeight: 900, fontSize: 18, color: 'var(--primary-600)' }}>Rp {fmt(b.harga_jual)}</p>
-                <p style={{ fontSize: 11.5, color: b.stok < 5 ? 'var(--warning-text)' : 'var(--text-muted)', marginTop: 6, fontWeight: 500 }}>
-                  {b.stok < 5 ? `⚠️ Sisa: ${b.stok}` : `✅ Tersedia`}
+                <p style={{ fontSize: 11.5, color: b.stok > 0 ? '#16a34a' : '#dc2626', marginTop: 6, fontWeight: 600 }}>
+                  {b.stok > 0 ? `✅ Tersedia` : `❌ Tidak Tersedia`}
                 </p>
               </div>
             ))}
@@ -114,6 +116,41 @@ export default function Katalog() {
       <footer style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: 12, borderTop: '1px solid var(--border)' }}>
         Warung Adjie © {new Date().getFullYear()} — Sistem Kasir Digital
       </footer>
+
+      {selectedProduk && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setSelectedProduk(null)}>
+          <div className="modal-box" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3 style={{ fontWeight: 800 }}>Detail Produk</h3>
+              <button className="btn btn-secondary" style={{ padding: '4px 8px' }} onClick={() => setSelectedProduk(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center' }}>
+              {selectedProduk.gambar ? (
+                <img src={`${BACKEND_URL}uploads/${selectedProduk.gambar}`} alt={selectedProduk.nama} style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: 16 }} />
+              ) : (
+                <div style={{ width: '100%', height: 200, background: 'var(--input-bg)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, marginBottom: 16 }}>
+                  {selectedProduk.kategori === 'Makanan' ? '🍔' : selectedProduk.kategori === 'Minuman' ? '🥤' : selectedProduk.kategori === 'Sembako' ? '🍚' : '📦'}
+                </div>
+              )}
+              <span className="badge badge-neutral" style={{ fontSize: 12, marginBottom: 8 }}>{selectedProduk.kategori}</span>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{selectedProduk.nama}</h2>
+              <div style={{ fontSize: 24, fontWeight: 900, color: 'var(--primary-600)', marginBottom: 16 }}>
+                Rp {fmt(selectedProduk.harga_jual)}
+              </div>
+              <div style={{ 
+                background: selectedProduk.stok > 0 ? '#f0fdf4' : '#fef2f2', 
+                color: selectedProduk.stok > 0 ? '#16a34a' : '#dc2626',
+                padding: '12px', borderRadius: 8, fontWeight: 'bold', fontSize: 14
+              }}>
+                {selectedProduk.stok > 0 ? 'Status: ✅ Tersedia' : 'Status: ❌ Tidak Tersedia'}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setSelectedProduk(null)}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
