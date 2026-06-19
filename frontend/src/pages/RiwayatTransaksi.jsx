@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getRiwayatTransaksi } from '../services/transaksiService';
 import { useToast } from '../components/Toast';
 import { SkeletonTable } from '../components/Skeleton';
+import { printStrukRiwayat } from '../utils/printReceipt';
 
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 
@@ -36,78 +37,6 @@ function exportCSV(data) {
   URL.revokeObjectURL(url);
 }
 
-function printReceipt(trx) {
-  const tgl = new Date(trx.tanggal);
-  const printWindow = window.open('', '_blank', 'width=400,height=600');
-  if (!printWindow) {
-    alert("Popup diblokir. Izinkan popup untuk mencetak struk.");
-    return;
-  }
-  
-  let html = `
-    <html>
-      <head>
-        <title>Struk Transaksi #${trx.id.substring(0, 8).toUpperCase()}</title>
-        <style>
-          @page { margin: 0; }
-          body { font-family: monospace; padding: 20px; color: #000; margin: 0; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-          .subtitle { font-size: 12px; margin-bottom: 5px; }
-          .divider { border-bottom: 1px dashed #000; margin: 10px 0; }
-          .item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
-          .item-name { max-width: 150px; text-align: left; }
-          .item-price { text-align: right; }
-          .total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-top: 10px; }
-          .footer { text-align: center; font-size: 12px; margin-top: 30px; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="title">WARUNG ADJIE</div>
-          <div class="subtitle">Struk Transaksi</div>
-          <div class="subtitle">ID: #${trx.id.substring(0, 8).toUpperCase()}</div>
-          <div class="subtitle">${tgl.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}</div>
-        </div>
-        <div class="divider"></div>
-  `;
-
-  if (trx.detail && trx.detail.length > 0) {
-    trx.detail.forEach(d => {
-      html += `
-        <div class="item">
-          <div class="item-name">${d.nama_barang}<br/>${d.jumlah} x Rp ${fmt(d.harga_satuan)}</div>
-          <div class="item-price">Rp ${fmt(d.jumlah * d.harga_satuan)}</div>
-        </div>
-      `;
-    });
-  } else {
-    html += `<div class="item"><em>Tidak ada detail</em></div>`;
-  }
-
-  html += `
-        <div class="divider"></div>
-        <div class="total">
-          <span>TOTAL</span>
-          <span>Rp ${fmt(trx.total_harga)}</span>
-        </div>
-        <div class="divider"></div>
-        <div class="footer">
-          Terima kasih atas kunjungan Anda!
-        </div>
-      </body>
-    </html>
-  `;
-
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 250);
-}
 
 export default function RiwayatTransaksi() {
   const toast = useToast();
@@ -238,7 +167,7 @@ export default function RiwayatTransaksi() {
                       </div>
                       <button 
                         className="btn btn-secondary btn-sm" 
-                        onClick={(e) => { e.stopPropagation(); printReceipt(trx); }}
+                        onClick={(e) => { e.stopPropagation(); printStrukRiwayat(trx); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '4px 10px' }}
                       >
                         🖨️ Cetak Struk

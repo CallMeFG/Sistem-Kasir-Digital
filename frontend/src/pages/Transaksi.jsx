@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getBarang } from '../services/barangService';
 import { createTransaksi } from '../services/transaksiService';
 import { useToast } from '../components/Toast';
+import { printStrukTransaksi } from '../utils/printReceipt';
 
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 
@@ -77,7 +78,7 @@ function ModalBayar({ keranjang, totalHarga, onClose, onConfirm, loading }) {
 }
 
 function ModalStruk({ struk, onClose }) {
-  const handlePrint = () => window.print();
+  const handlePrint = () => printStrukTransaksi(struk);
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box max-w-[360px]">
