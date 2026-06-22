@@ -6,3 +6,7 @@
 
 # Mengabaikan file PRD
 PRD.md
+
+# Mengabaikan file environment configuration
+.env
+backend/.env

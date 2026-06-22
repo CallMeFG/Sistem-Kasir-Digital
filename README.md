@@ -93,4 +93,4 @@ Buka `http://localhost:5173` di browser-mu dan selamat mengelola Warung Adjie! �
 
 Aplikasi ini terus dikembangkan agar lebih sempurna. Jika ada masukan, penemuan *bug*, atau ide fitur baru yang keren, silakan buka *Issue* atau buat *Pull Request*. Segala bentuk kontribusi sangat dihargai!
 
-> Dibuat dengan dedikasi 💻 dan segelas ☕.
+> Dibuat dengan sakit kepala dan pusing melintir ☕.
