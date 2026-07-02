@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../utils/supabaseClient';
+import { api } from '../services/api';
 
 export default function Register() {
   const [email, setEmail]       = useState('');
@@ -24,16 +24,20 @@ export default function Register() {
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    try {
+      const response = await api.post('register', { email, password });
+      const data = response.data;
 
-    if (error) {
-      setErrorMsg(error.message || 'Terjadi kesalahan saat pendaftaran.');
+      if (data && data.success) {
+        setSuccessMsg('Pendaftaran berhasil! Akun Anda telah disimpan di MySQL. Silakan langsung login.');
+      } else {
+        setErrorMsg(data.message || 'Terjadi kesalahan saat pendaftaran.');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Terjadi kesalahan saat pendaftaran.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSuccessMsg('Pendaftaran berhasil! Silakan periksa email Anda untuk verifikasi, atau langsung login jika tidak diperlukan.');
-    setLoading(false);
   };
 
   return (

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../utils/supabaseClient';
+import { api } from '../services/api';
 
 export default function Forgot() {
   const [email, setEmail]       = useState('');
@@ -14,18 +14,20 @@ export default function Forgot() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/login',
-    });
+    try {
+      const response = await api.post('forgot', { email });
+      const data = response.data;
 
-    if (error) {
-      setErrorMsg(error.message || 'Gagal mengirim link reset password.');
+      if (data && data.success) {
+        setSuccessMsg(data.message || 'Password berhasil direset di MySQL.');
+      } else {
+        setErrorMsg(data.message || 'Gagal mereset password.');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Email tidak ditemukan dalam database.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSuccessMsg('Link reset password telah dikirim ke email Anda. Silakan periksa inbox atau folder spam.');
-    setLoading(false);
   };
 
   return (

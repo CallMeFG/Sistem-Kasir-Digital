@@ -73,6 +73,24 @@ try {
             $controller->index();
             break;
             
+        case 'login':
+            require_once 'controllers/AuthController.php';
+            $controller = new AuthController($db);
+            $controller->login();
+            break;
+
+        case 'register':
+            require_once 'controllers/AuthController.php';
+            $controller = new AuthController($db);
+            $controller->register();
+            break;
+
+        case 'forgot':
+            require_once 'controllers/AuthController.php';
+            $controller = new AuthController($db);
+            $controller->forgot();
+            break;
+            
         default:
             JsonView::render(false, null, "Route '{$route}' not found.", 404);
             break;

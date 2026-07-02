@@ -1,6 +1,8 @@
 CREATE DATABASE IF NOT EXISTS `warung_adjie` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `warung_adjie`;
 
+DROP TABLE IF EXISTS `detail_transaksi`, `transaksi`, `produk`, `users`;
+
 CREATE TABLE IF NOT EXISTS `produk` (
   `id_produk` int(11) NOT NULL AUTO_INCREMENT,
   `nama_produk` varchar(255) NOT NULL,
@@ -30,8 +32,20 @@ CREATE TABLE IF NOT EXISTS `detail_transaksi` (
   KEY `fk_transaksi` (`id_transaksi`),
   KEY `fk_produk` (`id_produk`),
   CONSTRAINT `fk_transaksi` FOREIGN KEY (`id_transaksi`) REFERENCES `transaksi` (`id_transaksi`) ON DELETE CASCADE,
-  CONSTRAINT `fk_produk` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`) ON DELETE RESTRICT
+  CONSTRAINT `fk_produk` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id_user` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_user`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `users` (`email`, `password`) VALUES
+('admin@warung.com', '$2y$10$UHnWNrqVE1mPJWDxOFvaiuB1VjLhrlNQPxc9e9KOzds2O2/noMzh.');
 
 INSERT INTO `produk` (`nama_produk`, `kategori`, `harga_modal`, `harga_jual`, `stok`) VALUES
 ('Kopi Kapal Api', 'Minuman', 3000, 4000, 50),

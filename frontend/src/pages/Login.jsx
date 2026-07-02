@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../utils/supabaseClient';
+import { api } from '../services/api';
 
 export default function Login() {
   const [email, setEmail]       = useState('');
@@ -15,17 +15,20 @@ export default function Login() {
     setLoading(true);
     setErrorMsg('');
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const response = await api.post('login', { email, password });
+      const data = response.data;
 
-    if (error) {
-      setErrorMsg('Email atau password salah. Silakan coba lagi.');
+      if (data && data.success && data.data && data.data.user) {
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        navigate('/dashboard');
+      } else {
+        setErrorMsg(data.message || 'Email atau password salah. Silakan coba lagi.');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Email atau password salah. Silakan coba lagi.');
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
     }
   };
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost/Sistem-Kasir-Digital/backend/index.php?route=";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost/project/warung-adjie/backend/index.php?route=";
 
 const api = axios.create({ baseURL: BASE_URL });
 
