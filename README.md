@@ -2,7 +2,7 @@
 
 Selamat datang di repositori **Warung Adjie**! Ini adalah aplikasi Point of Sales (POS) atau Sistem Kasir Digital sederhana namun *powerful* yang dirancang khusus untuk mempermudah operasional warung kecil hingga menengah.
 
-Aplikasi ini dibangun menggunakan kombinasi **React (Vite)** di sisi frontend untuk memastikan antarmuka yang cepat dan modern, serta **PHP Native (PDO)** di sisi backend untuk pengolahan API yang ringan, ditenagai oleh database **PostgreSQL (Supabase)**.
+Aplikasi ini dibangun menggunakan kombinasi **React (Vite)** di sisi frontend untuk memastikan antarmuka yang cepat dan modern, serta **PHP Native (PDO)** di sisi backend untuk pengolahan API yang ringan, ditenagai oleh database **MySQL**.
 
 ---
 
@@ -35,7 +35,7 @@ Aplikasi ini dibangun menggunakan kombinasi **React (Vite)** di sisi frontend un
 - Custom Routing & CORS Handling System
 
 **Database:**
-- [PostgreSQL](https://www.postgresql.org/) (Di-host secara online via Supabase)
+- [MySQL](https://www.mysql.com/) (Relational Database Management System)
 
 ---
 
@@ -52,9 +52,11 @@ git clone https://github.com/username-kamu/warung-adjie.git
 cd warung-adjie
 ```
 
-### 2. Setup Backend (PHP)
-Karena database langsung terhubung ke cloud Supabase, kamu tidak perlu repot melakukan import file `.sql`. Cukup jalankan PHP server-nya:
-- Jika menggunakan Laragon/XAMPP, pindahkan folder project ini ke dalam folder `www` atau `htdocs`.
+### 2. Setup Database & Backend (PHP)
+- Buat database baru di MySQL via Laragon / phpMyAdmin dengan nama `warung_adjie`.
+- Import file skema `warung_adjie.sql` ke dalam database tersebut.
+- Sesuaikan konfigurasi koneksi database pada file `backend/.env` (secara default menggunakan host `localhost`, user `root`, dan tanpa password).
+- Pindahkan folder project ini ke dalam folder `www` atau `htdocs` pada Laragon/XAMPP.
 - Pastikan folder backend bisa diakses via browser, contoh: `http://localhost/project/warung-adjie/backend/index.php`.
 
 ### 3. Setup Frontend (React)

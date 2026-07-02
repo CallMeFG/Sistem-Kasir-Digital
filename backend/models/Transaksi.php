@@ -10,14 +10,19 @@ class Transaksi {
         try {
             $this->db->beginTransaction();
 
-            $queryTransaksi = "INSERT INTO transaksi (total_bayar) VALUES (:total_bayar) RETURNING id_transaksi, tanggal";
+            $queryTransaksi = "INSERT INTO transaksi (total_bayar) VALUES (:total_bayar)";
             $stmtTransaksi = $this->db->prepare($queryTransaksi);
             $stmtTransaksi->bindParam(':total_bayar', $total_bayar);
             $stmtTransaksi->execute();
             
-            $transaksiRow = $stmtTransaksi->fetch();
-            $id_transaksi = $transaksiRow['id_transaksi'];
-            $tanggal = $transaksiRow['tanggal'];
+            $id_transaksi = $this->db->lastInsertId();
+            
+            $queryTanggal = "SELECT tanggal FROM transaksi WHERE id_transaksi = :id_transaksi";
+            $stmtTanggal = $this->db->prepare($queryTanggal);
+            $stmtTanggal->bindParam(':id_transaksi', $id_transaksi);
+            $stmtTanggal->execute();
+            $rowTanggal = $stmtTanggal->fetch(PDO::FETCH_ASSOC);
+            $tanggal = $rowTanggal['tanggal'] ?? date('Y-m-d H:i:s');
 
             $queryDetail = "INSERT INTO detail_transaksi (id_transaksi, id_produk, jumlah_beli, subtotal_harga) 
                             VALUES (:id_transaksi, :id_produk, :jumlah_beli, :subtotal_harga)";
@@ -63,18 +68,18 @@ class Transaksi {
 
     public function getAll() {
         $query = "SELECT t.id_transaksi as id, t.tanggal, t.total_bayar as total_harga, 
-                         json_agg(json_build_object('nama_barang', p.nama_produk, 'jumlah', dt.jumlah_beli, 'harga_satuan', dt.subtotal_harga / dt.jumlah_beli)) as detail
+                         JSON_ARRAYAGG(JSON_OBJECT('nama_barang', p.nama_produk, 'jumlah', dt.jumlah_beli, 'harga_satuan', dt.subtotal_harga / dt.jumlah_beli)) as detail
                   FROM transaksi t
                   JOIN detail_transaksi dt ON t.id_transaksi = dt.id_transaksi
                   JOIN produk p ON dt.id_produk = p.id_produk
-                  GROUP BY t.id_transaksi
+                  GROUP BY t.id_transaksi, t.tanggal, t.total_bayar
                   ORDER BY t.tanggal DESC";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
         
         $arr = array();
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $row['detail'] = json_decode($row['detail']);
+            $row['detail'] = is_string($row['detail']) ? json_decode($row['detail']) : ($row['detail'] ?? []);
             array_push($arr, $row);
         }
         return $arr;
