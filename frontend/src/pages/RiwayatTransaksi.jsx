@@ -13,7 +13,7 @@ function exportCSV(data) {
     if (trx.detail && trx.detail.length > 0) {
       trx.detail.forEach(d => {
         rows.push([
-          trx.id.substring(0, 8).toUpperCase(),
+          String(trx.id).substring(0, 8).toUpperCase(),
           tgl.toLocaleDateString('id-ID'),
           tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
           d.nama_barang,
@@ -24,7 +24,7 @@ function exportCSV(data) {
         ]);
       });
     } else {
-      rows.push([trx.id.substring(0, 8).toUpperCase(), tgl.toLocaleDateString('id-ID'), tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), '-', '-', '-', '-', trx.total_harga]);
+      rows.push([String(trx.id).substring(0, 8).toUpperCase(), tgl.toLocaleDateString('id-ID'), tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), '-', '-', '-', '-', trx.total_harga]);
     }
   });
   const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -65,7 +65,7 @@ export default function RiwayatTransaksi() {
     let res = [...riwayat];
     if (search) {
       res = res.filter(t =>
-        t.id.toLowerCase().includes(search.toLowerCase()) ||
+        String(t.id).toLowerCase().includes(search.toLowerCase()) ||
         (t.detail || []).some(d => d.nama_barang?.toLowerCase().includes(search.toLowerCase()))
       );
     }
@@ -141,7 +141,7 @@ export default function RiwayatTransaksi() {
                   onMouseLeave={e => e.currentTarget.style.background = ''}
                 >
                   <span style={{ fontFamily: 'monospace', fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--bg-input)', padding: '3px 8px', borderRadius: 6 }}>
-                    #{trx.id.substring(0, 8).toUpperCase()}
+                    #{String(trx.id).substring(0, 8).toUpperCase()}
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>

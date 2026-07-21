@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getBarang } from '../services/barangService';
+import { getProduk } from '../services/produkService';
 import { getRiwayatTransaksi } from '../services/transaksiService';
 import { SkeletonStatCard, SkeletonChart, SkeletonLine } from '../components/Skeleton';
 import {
@@ -11,7 +11,7 @@ import {
 const fmt = (n) => new Intl.NumberFormat('id-ID').format(n);
 
 export default function Dashboard() {
-  const [barangList, setBarangList]       = useState([]);
+  const [produkList, setProdukList]       = useState([]);
   const [riwayat, setRiwayat]             = useState([]);
   const [loading, setLoading]             = useState(true);
   const [filterHari, setFilterHari]       = useState(7);
@@ -22,11 +22,11 @@ export default function Dashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resBarang, resTrx] = await Promise.all([
-        getBarang(),
+      const [resProduk, resTrx] = await Promise.all([
+        getProduk(),
         getRiwayatTransaksi().catch(() => ({ data: { data: [] } })),
       ]);
-      setBarangList(resBarang.data.data || []);
+      setProdukList(resProduk.data.data || []);
       setRiwayat(resTrx.data.data || []);
     } catch (err) {
       console.error(err);
@@ -35,7 +35,7 @@ export default function Dashboard() {
     }
   };
 
-  const barangKritis = useMemo(() => barangList.filter(b => b.stok < 10), [barangList]);
+  const produkKritis = useMemo(() => produkList.filter(p => p.stok < 10), [produkList]);
 
   const { chartData, totalPendapatan, totalTransaksi, totalLaba, kategoriData, terlaris } = useMemo(() => {
     let filtered = riwayat;
@@ -50,9 +50,9 @@ export default function Dashboard() {
     let laba = 0;
     filtered.forEach(t => {
       (t.detail || []).forEach(d => {
-        const barang = barangList.find(b => b.nama === d.nama_barang);
-        if (barang) {
-          laba += (Number(barang.harga_jual) - Number(barang.harga_modal)) * d.jumlah;
+        const produk = produkList.find(p => p.nama === d.nama_barang);
+        if (produk) {
+          laba += (Number(produk.harga_jual) - Number(produk.harga_modal)) * d.jumlah;
         } else {
           laba += (Number(d.harga_satuan) * 0.2) * d.jumlah;
         }
@@ -84,8 +84,8 @@ export default function Dashboard() {
     const kategoriMap = {};
     filtered.forEach(t => {
       (t.detail || []).forEach(d => {
-        const barang = barangList.find(b => b.nama === d.nama_barang);
-        const kat = barang?.kategori ?? 'Lainnya';
+        const produk = produkList.find(p => p.nama === d.nama_barang);
+        const kat = produk?.kategori ?? 'Lainnya';
         if (!kategoriMap[kat]) kategoriMap[kat] = 0;
         kategoriMap[kat] += Number(d.harga_satuan) * d.jumlah;
       });
@@ -93,7 +93,7 @@ export default function Dashboard() {
     const kategoriData = Object.entries(kategoriMap).map(([kat, total]) => ({ kat, total }));
 
     return { chartData, totalPendapatan: pendapatan, totalTransaksi: filtered.length, totalLaba: laba, kategoriData, terlaris };
-  }, [riwayat, filterHari, barangList]);
+  }, [riwayat, filterHari, produkList]);
 
   const tooltipStyle = {
     contentStyle: { borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', boxShadow: 'var(--shadow-lg)', color: 'var(--text-primary)' },
@@ -156,18 +156,18 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className={`bg-card p-5 rounded-xl shadow-sm border flex flex-col justify-between ${barangKritis.length > 0 ? 'border-red-400 border-l-4' : 'border-border'}`}>
+            <div className={`bg-card p-5 rounded-xl shadow-sm border flex flex-col justify-between ${produkKritis.length > 0 ? 'border-red-400 border-l-4' : 'border-border'}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="text-textSecondary text-sm font-semibold">Stok Kritis</div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${barangKritis.length > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                  {barangKritis.length > 0 ? '⚠️' : '✅'}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${produkKritis.length > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                  {produkKritis.length > 0 ? '⚠️' : '✅'}
                 </div>
               </div>
               <div>
-                <div className={`text-2xl font-bold mb-1 ${barangKritis.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {barangKritis.length} <span className="text-sm font-medium">produk</span>
+                <div className={`text-2xl font-bold mb-1 ${produkKritis.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {produkKritis.length} <span className="text-sm font-medium">produk</span>
                 </div>
-                <div className="text-xs text-textMuted">{barangKritis.length === 0 ? 'Semua stok produk aman' : 'Perlu restock segera'}</div>
+                <div className="text-xs text-textMuted">{produkKritis.length === 0 ? 'Semua stok produk aman' : 'Perlu restock segera'}</div>
               </div>
             </div>
           </>
@@ -298,13 +298,13 @@ export default function Dashboard() {
           </div>
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <SkeletonLine key={i} height="44px" style={{ marginBottom: 8 }} />)
-          ) : barangKritis.length === 0 ? (
+          ) : produkKritis.length === 0 ? (
             <div className="bg-successBg text-successText border border-successBorder rounded-xl p-4 text-center font-semibold text-sm">
               ✅ Semua stok produk aman!
             </div>
           ) : (
             <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
-              {barangKritis.map(b => (
+              {produkKritis.map(b => (
                 <div key={b.id} className={`flex justify-between items-center p-3 rounded-lg border ${
                   b.stok === 0 ? 'bg-errorBg border-errorBorder' : 'bg-warningBg border-warningBorder'
                 }`}>

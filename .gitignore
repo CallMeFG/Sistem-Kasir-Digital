@@ -4,9 +4,6 @@
 # Mengabaikan semua file PDF (modul pertemuan)
 *.pdf
 
-# Mengabaikan file PRD
-PRD.md
-
 # Mengabaikan file environment configuration
 .env
 backend/.env

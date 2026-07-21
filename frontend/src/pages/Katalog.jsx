@@ -1,30 +1,30 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBarang } from '../services/barangService';
+import { getProduk } from '../services/produkService';
 import { BACKEND_URL } from '../services/api';
 
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 const KATEGORI = ['Semua', 'Makanan', 'Minuman', 'Sembako', 'Lainnya'];
 
 export default function Katalog() {
-  const [barangList, setBarangList] = useState([]);
+  const [produkList, setProdukList] = useState([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
   const [filterKat, setFilterKat]   = useState('Semua');
   const [selectedProduk, setSelectedProduk] = useState(null);
 
   useEffect(() => {
-    getBarang()
-      .then(res => setBarangList(res.data.data || []))
+    getProduk()
+      .then(res => setProdukList(res.data.data || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   const filtered = useMemo(() => {
-    let res = [...barangList];
-    if (filterKat !== 'Semua') res = res.filter(b => b.kategori === filterKat);
-    if (search) res = res.filter(b => b.nama.toLowerCase().includes(search.toLowerCase()));
+    let res = [...produkList];
+    if (filterKat !== 'Semua') res = res.filter(p => p.kategori === filterKat);
+    if (search) res = res.filter(p => p.nama.toLowerCase().includes(search.toLowerCase()));
     return res;
-  }, [barangList, filterKat, search]);
+  }, [produkList, filterKat, search]);
 
   return (
     <div className="min-h-screen bg-app font-sans">

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { to: '/laporan',           icon: '📈', label: 'Laporan' },
 ];
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen, barangKritisCount, user }) {
+export default function Sidebar({ sidebarOpen, setSidebarOpen, produkKritisCount, user }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -57,9 +57,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, barangKritisCount
                   )}
                   <span className="text-[17px]">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
-                  {item.to === '/barang' && barangKritisCount > 0 && (
+                  {item.to === '/barang' && produkKritisCount > 0 && (
                     <span className="bg-red-500 text-white rounded-full text-[10px] font-extrabold px-1.5 min-w-[18px] text-center">
-                      {barangKritisCount}
+                      {produkKritisCount}
                     </span>
                   )}
                 </>
@@ -108,3 +108,4 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, barangKritisCount
     </>
   );
 }
+

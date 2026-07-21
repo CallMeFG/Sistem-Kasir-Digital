@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function Header({ sidebarOpen, setSidebarOpen, pageTitle, darkMode, setDarkMode, barangKritisCount }) {
+export default function Header({ sidebarOpen, setSidebarOpen, pageTitle, darkMode, setDarkMode, produkKritisCount }) {
   return (
     <header className="app-topbar">
       <button
@@ -25,11 +25,11 @@ export default function Header({ sidebarOpen, setSidebarOpen, pageTitle, darkMod
           {darkMode ? '☀️' : '🌙'}
         </button>
 
-        {barangKritisCount > 0 && (
+        {produkKritisCount > 0 && (
           <Link to="/barang" className="btn btn-secondary btn-sm text-base !px-2.5 !py-1.5 relative no-underline" title="Produk stok kritis">
             ⚠️
             <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-[10px] font-extrabold px-[5px] py-[1px] leading-snug">
-              {barangKritisCount}
+              {produkKritisCount}
             </span>
           </Link>
         )}
@@ -37,3 +37,4 @@ export default function Header({ sidebarOpen, setSidebarOpen, pageTitle, darkMod
     </header>
   );
 }
+

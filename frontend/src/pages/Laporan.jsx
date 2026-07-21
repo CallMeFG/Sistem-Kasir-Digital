@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBarang } from '../services/barangService';
+import { getProduk } from '../services/produkService';
 import { getRiwayatTransaksi } from '../services/transaksiService';
 import { SkeletonStatCard, SkeletonTable } from '../components/Skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 
 export default function Laporan() {
-  const [barangList, setBarangList] = useState([]);
+  const [produkList, setProdukList] = useState([]);
   const [riwayat, setRiwayat]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [bulan, setBulan]           = useState(() => {
@@ -22,11 +22,11 @@ export default function Laporan() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resBarang, resTrx] = await Promise.all([
-        getBarang(),
+      const [resProduk, resTrx] = await Promise.all([
+        getProduk(),
         getRiwayatTransaksi().catch(() => ({ data: { data: [] } })),
       ]);
-      setBarangList(resBarang.data.data || []);
+      setProdukList(resProduk.data.data || []);
       setRiwayat(resTrx.data.data || []);
     } catch (err) {
       console.error(err);
@@ -41,7 +41,7 @@ export default function Laporan() {
     let laba_kotor = 0;
     const harian = {};
     const kategoriMap = {};
-    const barangMap = {};
+    const produkMap = {};
 
     const [y, m] = bulan.split('-');
     const targetMonth = `${y}-${m}`;
@@ -56,22 +56,22 @@ export default function Laporan() {
         harian[hari] += Number(trx.total_harga);
 
         (trx.detail || []).forEach(d => {
-          const barang = barangList.find(b => b.nama === d.nama_barang);
-          const hModal = barang ? Number(barang.harga_modal) : Number(d.harga_satuan) * 0.8;
+          const produk = produkList.find(p => p.nama === d.nama_barang);
+          const hModal = produk ? Number(produk.harga_modal) : Number(d.harga_satuan) * 0.8;
           const modalItem = hModal * d.jumlah;
           const labaItem = (Number(d.harga_satuan) - hModal) * d.jumlah;
           
           total_modal += modalItem;
           laba_kotor += labaItem;
 
-          const kat = barang ? barang.kategori : 'Lainnya';
+          const kat = produk ? produk.kategori : 'Lainnya';
           if (!kategoriMap[kat]) kategoriMap[kat] = { pendapatan: 0, laba: 0 };
           kategoriMap[kat].pendapatan += Number(d.harga_satuan) * d.jumlah;
           kategoriMap[kat].laba += labaItem;
 
-          if (!barangMap[d.nama_barang]) barangMap[d.nama_barang] = { jumlah: 0, pendapatan: 0 };
-          barangMap[d.nama_barang].jumlah += d.jumlah;
-          barangMap[d.nama_barang].pendapatan += Number(d.harga_satuan) * d.jumlah;
+          if (!produkMap[d.nama_barang]) produkMap[d.nama_barang] = { jumlah: 0, pendapatan: 0 };
+          produkMap[d.nama_barang].jumlah += d.jumlah;
+          produkMap[d.nama_barang].pendapatan += Number(d.harga_satuan) * d.jumlah;
         });
       }
     });
@@ -87,17 +87,17 @@ export default function Laporan() {
       laba: kategoriMap[kat].laba
     }));
 
-    const top_barang = Object.keys(barangMap)
+    const top_produk = Object.keys(produkMap)
       .map(nama => ({
         nama,
-        total_terjual: barangMap[nama].jumlah,
-        total_pendapatan: barangMap[nama].pendapatan
+        total_terjual: produkMap[nama].jumlah,
+        total_pendapatan: produkMap[nama].pendapatan
       }))
       .sort((a, b) => b.total_terjual - a.total_terjual)
       .slice(0, 5);
 
-    return { total_pendapatan, total_modal, laba_kotor, per_hari, per_kategori, top_barang };
-  }, [riwayat, barangList, bulan]);
+    return { total_pendapatan, total_modal, laba_kotor, per_hari, per_kategori, top_produk };
+  }, [riwayat, produkList, bulan]);
 
   const {
     total_pendapatan: pendapatan,
@@ -112,10 +112,10 @@ export default function Laporan() {
     laba: k.laba
   }));
 
-  const topBarang = data.top_barang.map(b => ({
-    nama: b.nama,
-    jumlah: b.total_terjual,
-    pendapatan: b.total_pendapatan
+  const topProduk = data.top_produk.map(p => ({
+    nama: p.nama,
+    jumlah: p.total_terjual,
+    pendapatan: p.total_pendapatan
   }));
 
   const tooltipStyle = {
@@ -208,7 +208,7 @@ export default function Laporan() {
               </tr>
             </thead>
             <tbody>
-              ${topBarang.map((b, i) => `
+              ${topProduk.map((b, i) => `
                 <tr>
                   <td>${i + 1}</td>
                   <td>${b.nama}</td>
@@ -216,7 +216,7 @@ export default function Laporan() {
                   <td class="text-right">Rp ${fmt(b.pendapatan)}</td>
                 </tr>
               `).join('')}
-              ${topBarang.length === 0 ? '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>' : ''}
+              ${topProduk.length === 0 ? '<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>' : ''}
             </tbody>
           </table>
           
@@ -360,7 +360,7 @@ export default function Laporan() {
 
         <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
           <h3 className="font-bold text-textPrimary text-lg mb-4">🏆 Top Produk Terjual</h3>
-          {loading ? <SkeletonTable rows={5} cols={3} /> : topBarang.length === 0 ? (
+          {loading ? <SkeletonTable rows={5} cols={3} /> : topProduk.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-gray-400">
               <p className="text-sm">Tidak ada data</p>
             </div>
@@ -376,7 +376,7 @@ export default function Laporan() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {topBarang.map((b, i) => (
+                  {topProduk.map((b, i) => (
                     <tr key={b.nama} className="hover:bg-input transition-colors">
                       <td className="py-3 font-bold text-textMuted">{i + 1}</td>
                       <td className="py-3 font-medium text-textPrimary">{b.nama}</td>
@@ -393,3 +393,5 @@ export default function Laporan() {
     </div>
   );
 }
+
+

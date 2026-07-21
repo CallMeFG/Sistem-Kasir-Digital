@@ -236,7 +236,7 @@ export function printStrukRiwayat(trx) {
   const waktuStr = tgl.toLocaleTimeString('id-ID', {
     hour: '2-digit', minute: '2-digit', second: '2-digit'
   });
-  const noStruk = trx.id.substring(0, 8).toUpperCase();
+  const noStruk = String(trx.id).substring(0, 8).toUpperCase();
 
   let itemsHtml = '';
   if (trx.detail && trx.detail.length > 0) {

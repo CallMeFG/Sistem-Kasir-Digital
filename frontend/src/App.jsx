@@ -11,7 +11,7 @@ const Register         = lazy(() => import('./pages/Register'));
 const Forgot           = lazy(() => import('./pages/Forgot'));
 
 const Dashboard        = lazy(() => import('./pages/Dashboard'));
-const DaftarBarang     = lazy(() => import('./pages/DaftarBarang'));
+const DaftarProduk     = lazy(() => import('./pages/DaftarProduk'));
 const Transaksi        = lazy(() => import('./pages/Transaksi'));
 const RiwayatTransaksi = lazy(() => import('./pages/RiwayatTransaksi'));
 const Laporan          = lazy(() => import('./pages/Laporan'));
@@ -49,7 +49,7 @@ export default function App() {
               <Route element={<MainLayout />}>
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/barang" element={<ProtectedRoute><DaftarBarang /></ProtectedRoute>} />
+                <Route path="/barang" element={<ProtectedRoute><DaftarProduk /></ProtectedRoute>} />
                 <Route path="/transaksi" element={<ProtectedRoute><Transaksi /></ProtectedRoute>} />
                 <Route path="/riwayat-transaksi" element={<ProtectedRoute><RiwayatTransaksi /></ProtectedRoute>} />
                 <Route path="/laporan" element={<ProtectedRoute><Laporan /></ProtectedRoute>} />

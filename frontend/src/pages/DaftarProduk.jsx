@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBarang, createBarang, updateBarang, deleteBarang } from '../services/barangService';
+import { getProduk, createProduk, updateProduk, deleteProduk } from '../services/produkService';
 import { BACKEND_URL } from '../services/api';
 import { useToast } from '../components/Toast';
 import { SkeletonCard } from '../components/Skeleton';
@@ -16,9 +16,9 @@ const SORT_OPTIONS  = [
 
 const EMPTY_FORM = { id: '', nama: '', kategori: 'Makanan', harga_modal: '', harga_jual: '', stok: '', gambar: null, gambarFile: null };
 
-export default function DaftarBarang() {
+export default function DaftarProduk() {
   const toast = useToast();
-  const [daftarBarang, setDaftarBarang] = useState([]);
+  const [daftarProduk, setDaftarProduk] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [saving, setSaving]             = useState(false);
   const [formData, setFormData]         = useState(EMPTY_FORM);
@@ -39,8 +39,8 @@ export default function DaftarBarang() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await getBarang();
-      setDaftarBarang(res.data.data || []);
+      const res = await getProduk();
+      setDaftarProduk(res.data.data || []);
     } catch {
       toast.error('Gagal memuat data', 'Tidak dapat terhubung ke server');
     } finally {
@@ -73,10 +73,10 @@ export default function DaftarBarang() {
 
     try {
       if (formData.id) {
-        await updateBarang(payload);
+        await updateProduk(payload);
         toast.success('Berhasil!', `Produk "${formData.nama}" berhasil diupdate.`);
       } else {
-        await createBarang(payload);
+        await createProduk(payload);
         toast.success('Berhasil!', `Produk "${formData.nama}" berhasil ditambahkan.`);
       }
       setFormData(EMPTY_FORM);
@@ -88,15 +88,15 @@ export default function DaftarBarang() {
     }
   };
 
-  const handleEdit = (barang) => {
-    setFormData({ ...barang, gambarFile: null });
+  const handleEdit = (produk) => {
+    setFormData({ ...produk, gambarFile: null });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id, nama) => {
     if (!window.confirm(`Hapus produk "${nama}"?`)) return;
     try {
-      await deleteBarang(id);
+      await deleteProduk(id);
       toast.success('Dihapus!', `Produk "${nama}" berhasil dihapus.`);
       fetchData();
     } catch {
@@ -105,9 +105,9 @@ export default function DaftarBarang() {
   };
 
   const filtered = useMemo(() => {
-    let result = [...daftarBarang];
-    if (filterKat !== 'Semua') result = result.filter(b => b.kategori === filterKat);
-    if (debouncedSearch) result = result.filter(b => b.nama.toLowerCase().includes(debouncedSearch.toLowerCase()));
+    let result = [...daftarProduk];
+    if (filterKat !== 'Semua') result = result.filter(p => p.kategori === filterKat);
+    if (debouncedSearch) result = result.filter(p => p.nama.toLowerCase().includes(debouncedSearch.toLowerCase()));
     switch (sortBy) {
       case 'name':       result.sort((a, b) => a.nama.localeCompare(b.nama)); break;
       case 'price_asc':  result.sort((a, b) => a.harga_jual - b.harga_jual); break;
@@ -116,7 +116,7 @@ export default function DaftarBarang() {
       default: break;
     }
     return result;
-  }, [daftarBarang, filterKat, debouncedSearch, sortBy]);
+  }, [daftarProduk, filterKat, debouncedSearch, sortBy]);
 
   const margin = (b) => {
     const m = b.harga_jual - b.harga_modal;
@@ -247,24 +247,24 @@ export default function DaftarBarang() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-              {filtered.map(b => {
-                const { m, pct } = margin(b);
+              {filtered.map(p => {
+                const { m, pct } = margin(p);
                 return (
-                  <div key={b.id} className="card p-[18px] flex flex-col gap-2.5 transition-all duration-200 cursor-default hover:-translate-y-0.5">
+                  <div key={p.id} className="card p-[18px] flex flex-col gap-2.5 transition-all duration-200 cursor-default hover:-translate-y-0.5">
                     <div className="flex justify-between items-start">
-                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200">{b.kategori}</span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200">{p.kategori}</span>
                       <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold flex items-center gap-1.5 border ${
-                        b.stok === 0 ? 'bg-red-50 text-red-600 border-red-200' : 
-                        b.stok < 10 ? 'bg-amber-50 text-amber-600 border-amber-200' : 
+                        p.stok === 0 ? 'bg-red-50 text-red-600 border-red-200' : 
+                        p.stok < 10 ? 'bg-amber-50 text-amber-600 border-amber-200' : 
                         'bg-green-50 text-green-600 border-green-200'
                       }`}>
                         <span className="w-1.5 h-1.5 rounded-full bg-current block" />
-                        {b.stok === 0 ? 'Habis' : `Stok: ${b.stok}`}
+                        {p.stok === 0 ? 'Habis' : `Stok: ${p.stok}`}
                       </span>
                     </div>
 
-                    {b.gambar ? (
-                      <img src={`${BACKEND_URL}uploads/${b.gambar}`} alt={b.nama} className="w-full h-32 object-cover rounded-lg mt-1 mb-0.5 border border-border" />
+                    {p.gambar ? (
+                      <img src={`${BACKEND_URL}uploads/${p.gambar}`} alt={p.nama} className="w-full h-32 object-cover rounded-lg mt-1 mb-0.5 border border-border" />
                     ) : (
                       <div className="w-full h-32 bg-input rounded-lg flex items-center justify-center border border-border mt-1 mb-0.5 text-textMuted text-xs flex-col gap-1">
                         <span className="text-2xl">📦</span>
@@ -273,20 +273,20 @@ export default function DaftarBarang() {
                     )}
 
                     <div className="mt-1">
-                      <h3 className="font-bold text-[14.5px] text-textPrimary mb-0.5 leading-snug">{b.nama}</h3>
+                      <h3 className="font-bold text-[14.5px] text-textPrimary mb-0.5 leading-snug">{p.nama}</h3>
                       <p className="font-extrabold text-[17px] text-primary-600">
-                        Rp {Number(b.harga_jual).toLocaleString('id-ID')}
+                        Rp {Number(p.harga_jual).toLocaleString('id-ID')}
                       </p>
                     </div>
 
                     <div className="flex justify-between text-[11.5px] text-textMuted">
-                      <span>Modal: Rp {Number(b.harga_modal).toLocaleString('id-ID')}</span>
+                      <span>Modal: Rp {Number(p.harga_modal).toLocaleString('id-ID')}</span>
                       <span className={`font-semibold ${m > 0 ? 'text-successText' : 'text-textMuted'}`}>+{pct}%</span>
                     </div>
 
                     <div className="flex gap-2 mt-1 flex-wrap">
-                      <button onClick={() => handleEdit(b)} className="btn btn-secondary btn-sm flex-1">✏️ Edit</button>
-                      <button onClick={() => handleDelete(b.id, b.nama)} className="btn btn-danger btn-sm flex-1">🗑️ Hapus</button>
+                      <button onClick={() => handleEdit(p)} className="btn btn-secondary btn-sm flex-1">✏️ Edit</button>
+                      <button onClick={() => handleDelete(p.id, p.nama)} className="btn btn-danger btn-sm flex-1">🗑️ Hapus</button>
                     </div>
                   </div>
                 );

@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import Breadcrumb from '../components/Breadcrumb';
-import { getBarang } from '../services/barangService';
+import { getProduk } from '../services/produkService';
 import Loading from '../components/Loading';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -19,7 +19,7 @@ const PAGE_TITLES = {
 export default function MainLayout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [barangKritisCount, setBarangKritisCount] = useState(0);
+  const [produkKritisCount, setProdukKritisCount] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
@@ -36,10 +36,10 @@ export default function MainLayout() {
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    getBarang()
+    getProduk()
       .then(res => {
         const all = res.data.data || [];
-        setBarangKritisCount(all.filter(b => b.stok < 10).length);
+        setProdukKritisCount(all.filter(p => p.stok < 10).length);
       })
       .catch(() => {});
   }, []);
@@ -51,7 +51,7 @@ export default function MainLayout() {
       <Sidebar 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
-        barangKritisCount={barangKritisCount} 
+        produkKritisCount={produkKritisCount} 
         user={user} 
       />
 
@@ -62,7 +62,7 @@ export default function MainLayout() {
           pageTitle={pageTitle}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
-          barangKritisCount={barangKritisCount}
+          produkKritisCount={produkKritisCount}
         />
 
         <main className="app-content animate-fade">

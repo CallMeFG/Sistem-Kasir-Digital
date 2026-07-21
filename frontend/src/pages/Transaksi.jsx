@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBarang } from '../services/barangService';
+import { getProduk } from '../services/produkService';
 import { createTransaksi } from '../services/transaksiService';
 import { useToast } from '../components/Toast';
 import { printStrukTransaksi } from '../utils/printReceipt';
@@ -129,7 +129,7 @@ function ModalStruk({ struk, onClose }) {
 
 export default function Transaksi() {
   const toast = useToast();
-  const [barangList, setBarangList]   = useState([]);
+  const [produkList, setProdukList]   = useState([]);
   const [keranjang, setKeranjang]     = useState([]);
   const [loading, setLoading]         = useState(true);
   const [paying, setPaying]           = useState(false);
@@ -139,7 +139,7 @@ export default function Transaksi() {
   const [showModal, setShowModal]     = useState(false);
   const [struk, setStruk]             = useState(null);
 
-  useEffect(() => { fetchBarang(); }, []);
+  useEffect(() => { fetchProduk(); }, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -148,10 +148,10 @@ export default function Transaksi() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const fetchBarang = async () => {
+  const fetchProduk = async () => {
     try {
-      const res = await getBarang();
-      setBarangList(res.data.data || []);
+      const res = await getProduk();
+      setProdukList(res.data.data || []);
     } catch { toast.error('Gagal memuat produk', ''); }
     finally { setLoading(false); }
   };
@@ -201,7 +201,7 @@ export default function Transaksi() {
       });
       setKeranjang([]);
       setShowModal(false);
-      fetchBarang();
+      fetchProduk();
       toast.success('Transaksi berhasil!', `Total: Rp ${Number(totalHarga).toLocaleString('id-ID')}`);
     } catch {
       toast.error('Transaksi gagal', 'Periksa koneksi dan stok produk.');
@@ -210,12 +210,12 @@ export default function Transaksi() {
     }
   };
 
-  const filteredBarang = useMemo(() => {
-    let res = barangList;
-    if (filterKat !== 'Semua') res = res.filter(b => b.kategori === filterKat);
-    if (debouncedSearch) res = res.filter(b => b.nama.toLowerCase().includes(debouncedSearch.toLowerCase()));
+  const filteredProduk = useMemo(() => {
+    let res = produkList;
+    if (filterKat !== 'Semua') res = res.filter(p => p.kategori === filterKat);
+    if (debouncedSearch) res = res.filter(p => p.nama.toLowerCase().includes(debouncedSearch.toLowerCase()));
     return res;
-  }, [barangList, filterKat, debouncedSearch]);
+  }, [produkList, filterKat, debouncedSearch]);
 
   return (
     <div className="flex gap-5 h-[calc(100vh-130px)] min-h-[500px] flex-col md:flex-row">
@@ -248,7 +248,7 @@ export default function Transaksi() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-              {filteredBarang.map(item => {
+              {filteredProduk.map(item => {
                 const inKeranjang = keranjang.find(x => x.id === item.id);
                 const habis = item.stok <= 0;
                 return (
@@ -270,7 +270,7 @@ export default function Transaksi() {
                   </div>
                 );
               })}
-              {filteredBarang.length === 0 && (
+              {filteredProduk.length === 0 && (
                 <div className="empty-state col-span-full py-10">
                   <div className="empty-state-icon">🔍</div>
                   <p>Tidak ada produk ditemukan</p>
