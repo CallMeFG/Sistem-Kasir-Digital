@@ -31,6 +31,30 @@ Aplikasi ini dibangun menggunakan arsitektur terpisah (*decoupled architecture*)
 
 ---
 
+## Implementasi React.js di Sisi Frontend
+
+Pengembangan antarmuka web pada proyek **Warung Adjie** memanfaatkan fundamental **React.js 18** secara ekstensif untuk mencapai responsivitas tinggi, pengelolaan *state* yang stabil, dan struktur kode yang modular:
+
+### 1. Arsitektur Berbasis Komponen (*Component-Based Architecture*)
+- **Modularitas UI:** Antarmuka dipecah menjadi komponen-komponen mandiri yang dapat digunakan kembali (*reusable components*), seperti `Navbar.jsx`, `ModalBayar.jsx`, `ModalStruk.jsx`, dan kartu produk.
+- **Kemudahan Pemeliharaan:** Pemisahan struktur tampilan ini memastikan perubahan desain atau alur logika pada satu komponen (misalnya modifikasi tombol pada modal struk) tidak memengaruhi komponen lain di dalam aplikasi.
+
+### 2. Manajemen State Dinamis (`useState` & `useEffect`)
+- **`useState`:** Mengontrol data interaktif yang berubah seketika di peramban, seperti daftar barang belanjaan di keranjang kasir (`keranjang`), status pemuatan proses (`loading`), kata kunci pencarian (`search`), dan filter kategori barang.
+- **`useEffect`:** Menangani siklus hidup komponen dan proses *side-effects*, seperti memanggil data produk dari server tepat pada saat halaman dimuat pertama kali (*component mount*).
+
+### 3. Optimasi Performa dan Komputasi Lokal (`useMemo`)
+- **Penyaringan Seketika (*Instant Filtering*):** Pada halaman katalog (`Katalog.jsx`), *hook* `useMemo` menyaring array produk berdasarkan pilihan kategori dan teks pencarian secara lokal di memori browser tanpa harus melakukan pemanggilan query berulang ke server.
+- **Komputasi Analitik Finansial:** Pada halaman laporan (`Laporan.jsx`), `useMemo` mengolah ribuan baris data transaksi untuk menghitung **Laba Kotor (*Gross Profit*)**, total omset, serta peringkat produk terlaris. Hasil komputasi disimpan sementara di *cache memori* sehingga browser tidak mengalami penurunan performa atau *lag* saat pengguna beralih antar-tampilan.
+
+### 4. Routing Single Page Application (`React Router DOM`)
+- **Navigasi Tanpa Reload:** Manajemen rute antar-halaman (`/dashboard`, `/katalog`, `/kasir`, `/barang`, `/laporan`) dikelola sepenuhnya di sisi *client*. Perpindahan halaman berlangsung sangat mulus dan cepat layaknya aplikasi desktop karena browser tidak memuat ulang (*refresh*) dokumen HTML dari server.
+
+### 5. Pemisahan Lapisan Layanan API (*Service Layer Separation*)
+- **Struktur Kode Bersih:** Seluruh fungsi komunikasi HTTP menggunakan `Axios` dipisahkan dari logika visual komponen dan diletakkan pada berkas layanan terdedikasi (`services/produkService.js`, `services/transaksiService.js`). Komponen UI hanya bertugas merender tampilan dan mengolah *state*, menghasilkan kode yang rapi dan terstruktur (*separation of concerns*).
+
+---
+
 ## Arsitektur & Teknologi
 
 | Lapisan | Teknologi & Pustaka | Deskripsi Teknis |
