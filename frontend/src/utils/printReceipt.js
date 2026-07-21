@@ -1,20 +1,7 @@
-/**
- * Utility cetak struk untuk printer thermal 58mm
- * Kompatibel dengan iware RPP02N (ESC/POS, Bluetooth)
- * Ukuran kertas: 58mm x 210mm
- *
- * PENTING: Menggunakan <table> bukan flexbox agar layout
- * stabil dan tidak terpotong pada printer thermal.
- */
-
 const STORE_NAME = 'WARUNG ADJIE';
 
 const fmt = (n) => Number(n).toLocaleString('id-ID');
 
-/**
- * CSS khusus struk 50mm x 210mm thermal printer
- * Pakai table-based layout agar tidak ada teks yang terpotong
- */
 const getReceiptCSS = () => `
   * {
     box-sizing: border-box;

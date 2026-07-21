@@ -1,9 +1,4 @@
-# Mengabaikan folder agent
-.agent/
-
-# Mengabaikan semua file PDF (modul pertemuan)
 *.pdf
 
-# Mengabaikan file environment configuration
 .env
 backend/.env
